@@ -1,0 +1,118 @@
+# robotgguf per-donor config — Qwen3.5-9B (third coverage target)
+#
+# Donor family coverage (extraction-v1 §4.5 — one semvec, many donors):
+#   Qwen3.5-0.8B (dense hybrid, 1024×24)   — the fast local iteration donor
+#   Qwen3.5-9B   (dense hybrid, 4096×32)   — this config; mid-size dense point
+#   Qwen3.6-35B-A3B (MoE hybrid, 2048×40)  — flagship + teacher
+# All three cleave against the SAME semvec-v1 coordinate system, which is
+# what makes the cross-scale question well-posed: where does each axis become
+# linearly available at 0.8B vs 9B vs 35B-A3B?
+#
+# The 9B also doubles as the SELF-HOSTED teacher option (extraction-v1 §3.3
+# preference (a)) when the Modal endpoint isn't warranted — same tokenizer
+# family and vocab (248320) as both other donors.
+#
+# Architecture facts (verified against the HF checkpoint's config.json,
+# 2026-07-08 — R0 ingest re-verifies and refuses on disagreement):
+#   text_config: hidden_size 4096, 32 blocks, head_dim 256, dense FFN
+#   (intermediate 12288), layer_types = 3×linear_attention (GDN) →
+#   1×full_attention repeating → attention at L ≡ 3 (mod 4): 3, 7, …, 31.
+#   MTP head: 1 layer. Checkpoint class Qwen3_5ForConditionalGeneration
+#   (multimodal wrapper — record.py's loader fallback + layer discovery
+#   handle it). vocab 248320.
+#
+# Compute split: R1 record at 9B bf16 ≈ 18 GB weights — a single rented
+# A100/H100 (or the M4 at reduced budget) handles it; teacher inference on
+# Modal only if this donor is serving as teacher at scale.
+
+donor: Qwen/Qwen3.5-9B               # or a local path once downloaded
+base_architecture: qwen35
+base_gguf: work/qwen3.5-9b-f16.gguf
+
+# extraction-v1 corpus manifest (shared across donors — label once)
+corpus:
+  - corpus/manifest.yaml
+
+# semvec — the shared, versioned coordinate system
+semvec: configs/semvec-v1.yaml
+
+attributes:
+  - language
+  - register
+  - sentiment
+  - topic
+  - speech_act
+  - safety_salience
+  - entity_presence
+
+# survey-pass sites: every 4 blocks at L ≡ 2 (mod 4) — just before each
+# attention block — width 256 of 4096, offset 0. Focused pass re-records
+# winners across points/offsets/widths.
+candidate_sites:
+  - { name: resid2,  layer: 2,  point: resid_post, offset: 0, width: 256 }
+  - { name: resid6,  layer: 6,  point: resid_post, offset: 0, width: 256 }
+  - { name: resid10, layer: 10, point: resid_post, offset: 0, width: 256 }
+  - { name: resid14, layer: 14, point: resid_post, offset: 0, width: 256 }
+  - { name: resid18, layer: 18, point: resid_post, offset: 0, width: 256 }
+  - { name: resid22, layer: 22, point: resid_post, offset: 0, width: 256 }
+  - { name: resid26, layer: 26, point: resid_post, offset: 0, width: 256 }
+  - { name: resid30, layer: 30, point: resid_post, offset: 0, width: 256 }
+
+max_bottlenecks: 8
+min_decodability: 0.45
+min_selectivity: 0.05
+
+# semvec axis admission (extraction-v1 §4.3)
+min_axis_decodability: 0.3
+min_axis_selectivity: 0.05
+min_domain_stability_ratio: 0.9
+mlp_fallback_max: 8
+vec_l2: 10.0
+vec_sample_cap: 1000000
+
+# R3 — banks on GDN positions spread across depth; final block excluded
+state_banks:
+  - { name: fast,    width: 24 }
+  - { name: mid,     width: 24 }
+  - { name: slow,    width: 8 }
+  - { name: glacial, width: 8 }
+state_layers: [8, 16, 24]
+film_layers: [8, 16, 24]
+modulator:
+  dim: 32
+  channels: [arousal, valence, attention, safety, novelty, focus, warmth, energy]
+  source: glacial
+
+# R4 — mid-depth GDN blocks; attention blocks (L ≡ 3 mod 4) start excluded
+delta:
+  enabled: true
+  target_keep_rate: 0.3
+  heartbeat: 32
+  layers: [6, 12, 18, 24]
+
+shims:
+  - { name: register-formal, attribute: register,        direction: 1, scale: 1.0, tags: [style, formal] }
+  - { name: topic-bias-tech, attribute: topic,           direction: 1, scale: 0.8, tags: [topic] }
+  - { name: safety-damping,  attribute: safety_salience, direction: 0, scale: 1.0, tags: [safety] }
+
+memory:
+  key_dim: 32
+  capacity: 256
+  decay_halflife: 512.0
+  salience_threshold_quantile: 0.9
+  salience:
+    surprise: 1.0
+    mnorm:    1.0
+    floor:    0.0
+
+settle:
+  enabled: false
+
+features: [taps, shims, state, modulator, memory, delta]
+level: 3
+
+paths:
+  gguf_py: ../../../3rd-party/llama.cpp/gguf-py
+  runtime_bin: ../../../3rd-party/llama.cpp/build/bin
+  recordings: work/recordings-qwen3.5-9b
+  workdir: work

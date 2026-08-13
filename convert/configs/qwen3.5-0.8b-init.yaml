@@ -1,0 +1,25 @@
+# Day-1 milestone config: function-preserving state+modulator graft only
+# (taps/shims/delta/memory wait on corpus + weak labels)
+donor: work/hf-qwen3.5-0.8b
+base_architecture: qwen35
+base_gguf: work/qwen3.5-0.8b-f16.gguf
+attributes: []
+state_banks:
+  - { name: fast,    width: 24 }
+  - { name: mid,     width: 24 }
+  - { name: slow,    width: 8 }
+  - { name: glacial, width: 8 }
+state_layers: [6, 12, 18]
+film_layers: [6, 12, 18]
+modulator:
+  dim: 8
+  channels: [arousal, valence, attention, safety, novelty, focus, warmth, energy]
+  source: glacial
+delta: { enabled: false }
+settle: { enabled: false }
+features: [state, modulator]
+level: 2
+paths:
+  gguf_py: ../../../3rd-party/llama.cpp/gguf-py
+  runtime_bin: ../../../3rd-party/llama.cpp/build/bin
+  workdir: work

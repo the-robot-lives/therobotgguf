@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: robotgguf
+Version: 0.1.0
+Summary: Retrofit existing LLM checkpoints onto the therobot runtime (conversion-pipeline.md workstream C)
+Requires-Python: >=3.9
+Requires-Dist: numpy
+Requires-Dist: pyyaml
+Provides-Extra: hf
+Requires-Dist: torch; extra == "hf"
+Requires-Dist: transformers; extra == "hf"
+Requires-Dist: datasets; extra == "hf"
+Provides-Extra: label
+Requires-Dist: torch; extra == "label"
+Requires-Dist: transformers; extra == "label"
+Requires-Dist: sentence-transformers; extra == "label"
+Requires-Dist: fasttext-wheel; extra == "label"
+Requires-Dist: huggingface_hub; extra == "label"

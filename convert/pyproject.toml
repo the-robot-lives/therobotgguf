@@ -1,0 +1,26 @@
+[project]
+name = "robotgguf"
+version = "0.1.0"
+description = "Retrofit existing LLM checkpoints onto the therobot runtime (conversion-pipeline.md workstream C)"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+# R0/R1/R3 (ingest, record, graft) need the HF stack; everything else runs without it
+hf = ["torch", "transformers", "datasets"]
+# t1/t2 label passes (extraction-v1 C2): embedder, classifiers, language id
+label = ["torch", "transformers", "sentence-transformers",
+         "fasttext-wheel", "huggingface_hub"]
+
+[project.scripts]
+robotgguf = "robotgguf.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["robotgguf*"]

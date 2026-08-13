@@ -1,0 +1,70 @@
+# robotgguf per-donor config — Qwen2.5-1.5B-Instruct (donor roadmap #1)
+# Stages append measured values to qwen2.5-1.5b.lock.yaml; the exporter
+# consumes only measured values.
+
+donor: Qwen/Qwen2.5-1.5B-Instruct
+base_architecture: qwen2
+# stock GGUF from the fork's convert_hf_to_gguf.py:
+base_gguf: work/qwen2.5-1.5b-f16.gguf
+
+corpus:
+  - corpus/mixed-text.txt        # a few hundred MB of mixed text
+  - corpus/behavioral-suites.txt # the project's task suites
+
+# R2 — text-domain v0 attribute set (conversion-pipeline.md §R2)
+attributes:
+  - language
+  - register
+  - sentiment
+  - topic
+  - speech_act
+  - safety_salience
+  - entity_presence
+
+max_bottlenecks: 8
+min_decodability: 0.7
+min_selectivity: 0.05
+
+# R3 — banks per 003 §2; glacial feeds the modulator
+state_banks:
+  - { name: fast,    width: 32 }
+  - { name: mid,     width: 32 }
+  - { name: slow,    width: 16 }
+  - { name: glacial, width: 16 }
+state_layers: [4, 8, 12, 16, 20]
+film_layers: [4, 8, 12, 16, 20]
+modulator:
+  dim: 8
+  channels: [arousal, valence, attention, safety, novelty, focus, warmth, energy]
+  source: glacial
+
+# R4
+delta:
+  enabled: true
+  target_keep_rate: 0.3
+  heartbeat: 32
+  layers: [6, 10, 14, 18, 22]
+
+# R5 — v0 shim set
+shims:
+  - { name: register-formal,   attribute: register,        direction: 1, scale: 1.0, tags: [style, formal] }
+  - { name: topic-bias-tech,   attribute: topic,           direction: 1, scale: 0.8, tags: [topic] }
+  - { name: safety-damping,    attribute: safety_salience, direction: 0, scale: 1.0, tags: [safety] }
+
+memory:
+  key_dim: 32
+  capacity: 128
+  decay_halflife: 512.0
+  salience_threshold_quantile: 0.9
+
+settle:
+  enabled: false   # v0: settle ships against a diffusion-class donor instead
+
+features: [taps, shims, state, modulator, memory, delta]
+level: 3
+
+paths:
+  gguf_py: ../../../3rd-party/llama.cpp/gguf-py
+  runtime_bin: /tmp/robot-build/bin
+  recordings: work/recordings
+  workdir: work

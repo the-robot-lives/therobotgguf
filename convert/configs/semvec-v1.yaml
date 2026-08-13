@@ -1,0 +1,95 @@
+# semvec/v1 — the standardized semantic label vector (extraction-v1 §3.2)
+#
+# THIS FILE IS A VERSIONED STANDARD, NOT A PER-DONOR ARTIFACT. Labels are
+# functions of text, never of any model: every donor's cleave regresses onto
+# this same coordinate system, which is what makes probes, shims, and readout
+# consumers donor-portable (extraction-v1 §4.5).
+#
+# Versioning is APPEND-ONLY: axes never renumber, rescale, or change meaning;
+# new axes may be added as a minor version. Re-fitting the latent basis or
+# changing the embedder is by definition a new major version.
+#
+# Named axes are scored 0-4 (ordinal, stored float16). `tier` records the
+# best available label source: t0 = structural/heuristic (free, always
+# available), t1 = open classifier/embedder, t2 = teacher-LLM (sampled +
+# distilled). Lower tiers may pre-fill an axis a higher tier later overwrites
+# — labels/vector_sources.json in each recording records who actually wrote
+# what.
+
+semvec:
+  version: "1.0"
+  named_dim: 128
+  latent_dim: 384          # Block B — frozen reduction of the embedder space
+  scale: [0.0, 4.0]        # ordinal scoring range for named axes
+
+latent:
+  # Pinned identity of the queryable embedding space (extraction-v1 §3.2,
+  # §4.4). basis is fit ONCE (tools: robotgguf labelvec --fit-basis) and then
+  # frozen; its sha256 becomes part of the semvec hash. null = latent block
+  # not yet frozen (named axes still fully usable).
+  embedder: "Alibaba-NLP/gte-multilingual-base"
+  embedder_revision: null   # pin a commit hash when frozen
+  basis: null               # e.g. work/semvec-v1-basis.npz (mean, components)
+  basis_sha256: null
+
+groups:
+  affect:      { start: 0,   axes: [valence, arousal, warmth, humor, menace, grief, joy, disgust, anticipation, surprise_affect, calm, affection] }
+  register:    { start: 12,  axes: [formality, technicality, colloquialism, verbosity, archaism, legalism, bureaucratese, poeticism, slanginess, terseness, floridity, academese, journalese, marketese, intimacy, politeness] }
+  discourse:   { start: 28,  axes: [question_ness, imperative_ness, narration, dialogue, argumentation, listing, definition, instruction, description, summary_ness, speculation_discourse, citation, self_correction, meta_discourse, address_reader, storytelling] }
+  epistemics:  { start: 44,  axes: [certainty, factuality, speculativeness, opinionatedness, normativity, hedging, evidence_citing, counterfactuality, quantification, causal_claiming, generalization, precision] }
+  safety:      { start: 56,  axes: [physical_threat, violence, self_harm, toxicity, deception, urgency, sexual_content, criminality, medical_risk, financial_risk, privacy_exposure, alarmism] }
+  topic:       { start: 68,  axes: [tech_software, tech_hardware, science_bio, science_phys, mathematics, medicine, law, politics, economics_finance, business, sports, arts, music, literature_topic, film_tv, games, food, travel, fashion, religion, philosophy, history, education, environment, military, crime_news, relationships, parenting, diy_crafts, automotive, real_estate, misc_topic] }
+  structure:   { start: 100, axes: [symbol_density, numeracy, code_ness, math_notation, indentation_structure, markup_ness, list_structure, url_presence, uppercase_ratio, punctuation_density, avg_word_length, sentence_length, quote_presence, parenthetical, tabular_ness, whitespace_structure] }
+  entities:    { start: 116, axes: [person_presence, org_presence, place_presence, temporal_reference, self_reference, second_person, named_density, number_as_entity] }
+  language:    { start: 124, axes: [latin_script, cjk_script, cyrillic_script, other_script] }
+
+# Tier preference per group (who *should* own these labels once all tiers
+# have run; t0 pre-fills whatever it can regardless).
+tiers:
+  affect: t2
+  register: t2
+  discourse: t2
+  epistemics: t2
+  safety: t2
+  topic: t1
+  structure: t0
+  entities: t0
+  language: t0
+
+# Categorical views — the v0 seven attributes reconstructed from named axes
+# (extraction-v1 §5). Kept so existing cleave/e2e paths and per-donor
+# `attributes:` lists stay meaningful. kinds:
+#   threshold: bins over one axis  → class = number of thresholds exceeded
+#   argmax:    winner among axes (+ floor → fallback class appended last)
+views:
+  language:
+    kind: argmax
+    axes: [latin_script, cjk_script, cyrillic_script, other_script]
+    floor: 0.5
+    fallback: 0            # latin, matching v0 class 0
+  register:
+    kind: threshold
+    axis: formality
+    thresholds: [2.0]      # 0=informal 1=formal
+  sentiment:
+    kind: threshold
+    axis: valence
+    thresholds: [1.5, 2.5] # 0=negative 1=neutral 2=positive
+  topic:
+    kind: argmax
+    axes: [tech_software, science_bio, politics]   # v0's tech/science/news proxies
+    floor: 1.0
+    fallback: 3            # other
+  speech_act:
+    kind: argmax
+    axes: [question_ness, imperative_ness]
+    floor: 2.0
+    fallback: 2            # statement
+  safety_salience:
+    kind: threshold
+    axis: physical_threat
+    thresholds: [1.5]      # 0=benign 1=salient
+  entity_presence:
+    kind: threshold
+    axis: named_density
+    thresholds: [0.5]      # 0=absent 1=present

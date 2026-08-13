@@ -1,0 +1,14 @@
+numpy
+pyyaml
+
+[hf]
+torch
+transformers
+datasets
+
+[label]
+torch
+transformers
+sentence-transformers
+fasttext-wheel
+huggingface_hub

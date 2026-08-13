@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root_dir="${THEROBOT_ROOT:-/workspace/therobotgguf}"
+data_dir="${THEROBOT_DATA:-/workspace/data}"
+target="${data_dir}/corpus"
+limit="${1:-}"
+
+mkdir -p "$target"
+therobot-init-volume >/dev/null
+
+cd "${root_dir}/convert"
+
+if [[ -n "$limit" ]]; then
+  python tools/fetch_corpus.py corpus "$limit"
+else
+  python tools/fetch_corpus.py corpus
+fi
+
+echo "Corpus populated under ${target}"

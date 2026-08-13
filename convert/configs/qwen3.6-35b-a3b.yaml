@@ -1,0 +1,138 @@
+# robotgguf per-donor config — Qwen3.6-35B-A3B (extraction-v1 primary target)
+#
+# Why this donor (July 2026): the flagship small-activation MoE of the Qwen3.6
+# series — 35B total / ~3B active per token — and the designated teacher AND
+# donor for extraction-v1 (it annotates its own probing corpus).
+#
+# Compute split: INFERENCE on Modal (tools/modal_teacher.py — the vLLM
+# teacher endpoint); TRAINING-SIDE GPU work (R1 record, t1 label passes,
+# R3 graft training) on a rented GPU host — plain CLI, no platform coupling:
+#   pip install -e '.[hf,label]'
+#   robotgguf --config configs/qwen3.6-35b-a3b.yaml record --max-tokens 1000000
+#   robotgguf --config configs/qwen3.6-35b-a3b.yaml labelvec --tiers t1
+#   rsync work/recordings-qwen3.6-35b back; cleave/graft/export run locally.
+#
+# Architecture facts this config is built around (verified against the HF
+# checkpoint's config.json, 2026-07-08 — R0 ingest re-verifies and refuses on
+# disagreement):
+#   text_config: hidden_size 2048, 40 blocks, head_dim 256,
+#   layer_types = 3×linear_attention (GDN) → 1×full_attention repeating →
+#   attention blocks at L ≡ 3 (mod 4): 3, 7, 11, …, 39.
+#   MoE: 256 experts, 8 active/token, moe_intermediate 512 (+ shared expert).
+#   MTP head: 1 layer (mtp_num_hidden_layers). vocab 248320.
+#   Checkpoint class is Qwen3_5MoeForConditionalGeneration (multimodal
+#   wrapper; the language model nests under language_model — record.py's
+#   layer discovery handles this).
+#
+# NOTE runtime support: base_architecture must name the fork's arch string
+# for the qwen3_5_moe family. `qwen35moe` is the expected registration —
+# confirm against the fork before R7/R8 (the loader refuses unknown donors;
+# recording/cleave don't care).
+
+donor: Qwen/Qwen3.6-35B-A3B          # or a local path once downloaded
+base_architecture: qwen35moe
+# stock GGUF for R7/R8 (convert with the fork's converter once runtime
+# support for the MoE family lands):
+base_gguf: work/qwen3.6-35b-a3b-f16.gguf
+
+# extraction-v1 corpus: the seven-stratum manifest (tools/fetch_corpus.py)
+corpus:
+  - corpus/manifest.yaml
+
+# semvec — the standardized label vector + readout coordinate system
+semvec: configs/semvec-v1.yaml
+
+# categorical views exported as classic runtime probes (v0-compatible)
+attributes:
+  - language
+  - register
+  - sentiment
+  - topic
+  - speech_act
+  - safety_salience
+  - entity_presence
+
+# survey-pass candidate sites (extraction-v1 §4.2): every 4 blocks at
+# L ≡ 2 (mod 4) — the stream state each attention block consumes — width 256
+# of 2048, offset 0. The focused pass re-records winners across
+# points/offsets/widths.
+candidate_sites:
+  - { name: resid2,  layer: 2,  point: resid_post, offset: 0, width: 256 }
+  - { name: resid6,  layer: 6,  point: resid_post, offset: 0, width: 256 }
+  - { name: resid10, layer: 10, point: resid_post, offset: 0, width: 256 }
+  - { name: resid14, layer: 14, point: resid_post, offset: 0, width: 256 }
+  - { name: resid18, layer: 18, point: resid_post, offset: 0, width: 256 }
+  - { name: resid22, layer: 22, point: resid_post, offset: 0, width: 256 }
+  - { name: resid26, layer: 26, point: resid_post, offset: 0, width: 256 }
+  - { name: resid30, layer: 30, point: resid_post, offset: 0, width: 256 }
+  - { name: resid34, layer: 34, point: resid_post, offset: 0, width: 256 }
+  - { name: resid38, layer: 38, point: resid_post, offset: 0, width: 256 }
+
+# v0 categorical bars (balanced accuracy; the semvec axis bars below do the
+# v1 work)
+max_bottlenecks: 8
+min_decodability: 0.45
+min_selectivity: 0.05
+
+# semvec axis admission (extraction-v1 §4.3)
+min_axis_decodability: 0.3
+min_axis_selectivity: 0.05
+min_domain_stability_ratio: 0.9
+mlp_fallback_max: 8
+vec_l2: 10.0
+vec_sample_cap: 1000000
+
+# R3 — banks on GDN-block positions spread across depth (attention blocks sit
+# at L ≡ 3 mod 4; final block excluded by runtime rule)
+state_banks:
+  - { name: fast,    width: 24 }
+  - { name: mid,     width: 24 }
+  - { name: slow,    width: 8 }
+  - { name: glacial, width: 8 }
+state_layers: [10, 20, 30]
+film_layers: [10, 20, 30]
+modulator:
+  # memory value space == modulator space; 8 named dials + 24 latent channels
+  dim: 32
+  channels: [arousal, valence, attention, safety, novelty, focus, warmth, energy]
+  source: glacial
+
+# R4 — mid-depth GDN blocks only to start; MoE makes per-block Δ statistics
+# spikier than dense donors (expert routing flips can fire blocks that a
+# dense donor would hold) — calibrate reports per-block keep rates; prune
+# aggressively if attention blocks (…∣3 mod 4) or router-noisy blocks hold
+# poorly.
+delta:
+  enabled: true
+  target_keep_rate: 0.3
+  heartbeat: 32
+  layers: [8, 16, 24, 32]
+
+# R5 — v0 shim set (semvec-defined shims compile in once cleave_vec admits
+# their axes — extraction-v1 §4.5)
+shims:
+  - { name: register-formal, attribute: register,        direction: 1, scale: 1.0, tags: [style, formal] }
+  - { name: topic-bias-tech, attribute: topic,           direction: 1, scale: 0.8, tags: [topic] }
+  - { name: safety-damping,  attribute: safety_salience, direction: 0, scale: 1.0, tags: [safety] }
+
+memory:
+  key_dim: 32
+  capacity: 256
+  decay_halflife: 512.0
+  salience_threshold_quantile: 0.9
+  salience:
+    surprise: 1.0
+    mnorm:    1.0
+    floor:    0.0
+
+settle:
+  enabled: false
+
+features: [taps, shims, state, modulator, memory, delta]
+level: 3
+
+paths:
+  gguf_py: ../../../3rd-party/llama.cpp/gguf-py
+  runtime_bin: ../../../3rd-party/llama.cpp/build/bin
+  recordings: work/recordings-qwen3.6-35b
+  workdir: work

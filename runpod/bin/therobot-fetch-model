@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat >&2 <<'USAGE'
+Usage:
+  therobot-fetch-model <hf-repo-id> [destination-name]
+
+Examples:
+  therobot-fetch-model Qwen/Qwen3.5-9B Qwen3.5-9B
+  therobot-fetch-model Qwen/Qwen3.5-0.8B
+
+Set HF_TOKEN in the RunPod template or shell for gated/private models.
+USAGE
+}
+
+repo_id="${1:-}"
+dest_name="${2:-${repo_id##*/}}"
+
+if [[ -z "$repo_id" ]]; then
+  usage
+  exit 2
+fi
+
+data_dir="${THEROBOT_DATA:-/workspace/data}"
+dest="${data_dir}/llms/${dest_name}"
+
+mkdir -p "$dest" "${HF_HOME:-${data_dir}/hf-cache}"
+
+huggingface-cli download "$repo_id" \
+  --local-dir "$dest" \
+  --local-dir-use-symlinks False \
+  --resume-download
+
+echo "Fetched ${repo_id} -> ${dest}"

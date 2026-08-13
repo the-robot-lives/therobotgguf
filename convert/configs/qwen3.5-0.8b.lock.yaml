@@ -1,0 +1,463 @@
+record:
+  n_samples: 19968
+  corpus_hash: f690f5fab185e0cb
+  sites:
+  - resid10
+  - resid14
+  - resid18
+  - resid2
+  - resid22
+  - resid6
+  labeler: heuristic-v0
+cleave:
+  recordings:
+    model: 779874a7f3f7e43c
+    corpus: f690f5fab185e0cb
+  bottlenecks:
+  - layer: 22
+    point: resid_post
+    offset: 0
+    width: 128
+    name: resid22
+    attributes:
+    - entity_presence
+    - register
+    - safety_salience
+    - sentiment
+    - speech_act
+    - topic
+    decodability: 0.8195
+    selectivity: 0.5437
+    scores:
+      entity_presence:
+        decodability: 0.7592
+        selectivity: 0.2614
+        stability: 0.9742
+      register:
+        decodability: 0.6947
+        selectivity: 0.2062
+        stability: 0.9445
+      safety_salience:
+        decodability: 0.8195
+        selectivity: 0.2751
+        stability: 0.9551
+      sentiment:
+        decodability: 0.7328
+        selectivity: 0.3791
+        stability: 0.9356
+      speech_act:
+        decodability: 0.7918
+        selectivity: 0.4397
+        stability: 0.9086
+      topic:
+        decodability: 0.7746
+        selectivity: 0.5437
+        stability: 0.9258
+  - layer: 18
+    point: resid_post
+    offset: 0
+    width: 128
+    name: resid18
+    attributes:
+    - entity_presence
+    - register
+    - safety_salience
+    - sentiment
+    - speech_act
+    - topic
+    decodability: 0.8153
+    selectivity: 0.5318
+    scores:
+      entity_presence:
+        decodability: 0.7563
+        selectivity: 0.2546
+        stability: 0.9689
+      register:
+        decodability: 0.6933
+        selectivity: 0.1936
+        stability: 0.9422
+      safety_salience:
+        decodability: 0.8153
+        selectivity: 0.3495
+        stability: 0.9572
+      sentiment:
+        decodability: 0.7411
+        selectivity: 0.3857
+        stability: 0.958
+      speech_act:
+        decodability: 0.8025
+        selectivity: 0.4588
+        stability: 0.91
+      topic:
+        decodability: 0.7618
+        selectivity: 0.5318
+        stability: 0.9427
+  - layer: 10
+    point: resid_post
+    offset: 0
+    width: 128
+    name: resid10
+    attributes:
+    - entity_presence
+    - register
+    - safety_salience
+    - sentiment
+    - speech_act
+    - topic
+    decodability: 0.8104
+    selectivity: 0.4958
+    scores:
+      entity_presence:
+        decodability: 0.7448
+        selectivity: 0.2272
+        stability: 0.9565
+      register:
+        decodability: 0.6937
+        selectivity: 0.1964
+        stability: 0.9441
+      safety_salience:
+        decodability: 0.8104
+        selectivity: 0.3504
+        stability: 0.9502
+      sentiment:
+        decodability: 0.6902
+        selectivity: 0.363
+        stability: 0.9337
+      speech_act:
+        decodability: 0.795
+        selectivity: 0.4427
+        stability: 0.9116
+      topic:
+        decodability: 0.7526
+        selectivity: 0.4958
+        stability: 0.937
+  - layer: 14
+    point: resid_post
+    offset: 0
+    width: 128
+    name: resid14
+    attributes:
+    - entity_presence
+    - register
+    - safety_salience
+    - sentiment
+    - speech_act
+    - topic
+    decodability: 0.7971
+    selectivity: 0.5384
+    scores:
+      entity_presence:
+        decodability: 0.7641
+        selectivity: 0.2609
+        stability: 0.9608
+      register:
+        decodability: 0.6889
+        selectivity: 0.184
+        stability: 0.9447
+      safety_salience:
+        decodability: 0.7971
+        selectivity: 0.2761
+        stability: 0.9625
+      sentiment:
+        decodability: 0.7031
+        selectivity: 0.3697
+        stability: 0.9282
+      speech_act:
+        decodability: 0.7958
+        selectivity: 0.4783
+        stability: 0.9211
+      topic:
+        decodability: 0.7724
+        selectivity: 0.5384
+        stability: 0.9376
+  - layer: 6
+    point: resid_post
+    offset: 0
+    width: 128
+    name: resid6
+    attributes:
+    - entity_presence
+    - register
+    - safety_salience
+    - sentiment
+    - speech_act
+    - topic
+    decodability: 0.794
+    selectivity: 0.5436
+    scores:
+      entity_presence:
+        decodability: 0.7356
+        selectivity: 0.2542
+        stability: 0.9628
+      register:
+        decodability: 0.6828
+        selectivity: 0.1959
+        stability: 0.953
+      safety_salience:
+        decodability: 0.794
+        selectivity: 0.2838
+        stability: 0.9583
+      sentiment:
+        decodability: 0.6725
+        selectivity: 0.3307
+        stability: 0.9545
+      speech_act:
+        decodability: 0.7845
+        selectivity: 0.4488
+        stability: 0.9064
+      topic:
+        decodability: 0.745
+        selectivity: 0.5436
+        stability: 0.9169
+  - layer: 2
+    point: resid_post
+    offset: 0
+    width: 128
+    name: resid2
+    attributes:
+    - entity_presence
+    - register
+    - safety_salience
+    - sentiment
+    - speech_act
+    - topic
+    decodability: 0.7368
+    selectivity: 0.4483
+    scores:
+      entity_presence:
+        decodability: 0.7173
+        selectivity: 0.2298
+        stability: 0.9577
+      register:
+        decodability: 0.6681
+        selectivity: 0.1696
+        stability: 0.9526
+      safety_salience:
+        decodability: 0.7368
+        selectivity: 0.2229
+        stability: 0.978
+      sentiment:
+        decodability: 0.6381
+        selectivity: 0.2852
+        stability: 0.9375
+      speech_act:
+        decodability: 0.7124
+        selectivity: 0.3587
+        stability: 0.9052
+      topic:
+        decodability: 0.6716
+        selectivity: 0.4483
+        stability: 0.9384
+  findings:
+  - site: resid2
+    attribute: language
+    decodability: 1.0
+    selectivity: 0.0
+    verdict: "not decodable in the frozen donor \u2014 dropped"
+  - site: resid6
+    attribute: language
+    decodability: 1.0
+    selectivity: 0.0
+    verdict: "not decodable in the frozen donor \u2014 dropped"
+  - site: resid10
+    attribute: language
+    decodability: 1.0
+    selectivity: 0.0
+    verdict: "not decodable in the frozen donor \u2014 dropped"
+  - site: resid14
+    attribute: language
+    decodability: 1.0
+    selectivity: 0.0
+    verdict: "not decodable in the frozen donor \u2014 dropped"
+  - site: resid18
+    attribute: language
+    decodability: 1.0
+    selectivity: 0.0
+    verdict: "not decodable in the frozen donor \u2014 dropped"
+  - site: resid22
+    attribute: language
+    decodability: 1.0
+    selectivity: 0.0
+    verdict: "not decodable in the frozen donor \u2014 dropped"
+  probe_dir: /Users/keithbrings/Work/Space/Infra/Noizu/projects/therobotgguf/convert/work/probes
+calibrate:
+  granularity: block
+  heartbeat: 32
+  target_keep_rate: 0.3
+  blocks:
+  - layer: 4
+    theta_base: 0.008224
+    calibrated_from: resid2
+    achieved_keep_rate: 0.5714
+    max_staleness: 4
+  - layer: 8
+    theta_base: 0.0108
+    calibrated_from: resid6
+    achieved_keep_rate: 0.5669
+    max_staleness: 4
+  - layer: 12
+    theta_base: 0.011139
+    calibrated_from: resid10
+    achieved_keep_rate: 0.5668
+    max_staleness: 5
+  - layer: 16
+    theta_base: 0.028885
+    calibrated_from: resid14
+    achieved_keep_rate: 0.5609
+    max_staleness: 7
+  - layer: 20
+    theta_base: 0.087806
+    calibrated_from: resid18
+    achieved_keep_rate: 0.5569
+    max_staleness: 6
+export:
+  output: work/qwen3.5-0.8b-therobot-L3.gguf
+  features:
+  - taps
+  - shims
+  - state
+  - modulator
+  - memory
+  - delta
+  extension_tensors:
+  - robot.probe.0.entity_presence.weight
+  - robot.probe.0.entity_presence.bias
+  - robot.probe.0.register.weight
+  - robot.probe.0.register.bias
+  - robot.probe.0.safety_salience.weight
+  - robot.probe.0.safety_salience.bias
+  - robot.probe.0.sentiment.weight
+  - robot.probe.0.sentiment.bias
+  - robot.probe.0.speech_act.weight
+  - robot.probe.0.speech_act.bias
+  - robot.probe.0.topic.weight
+  - robot.probe.0.topic.bias
+  - robot.probe.1.entity_presence.weight
+  - robot.probe.1.entity_presence.bias
+  - robot.probe.1.register.weight
+  - robot.probe.1.register.bias
+  - robot.probe.1.safety_salience.weight
+  - robot.probe.1.safety_salience.bias
+  - robot.probe.1.sentiment.weight
+  - robot.probe.1.sentiment.bias
+  - robot.probe.1.speech_act.weight
+  - robot.probe.1.speech_act.bias
+  - robot.probe.1.topic.weight
+  - robot.probe.1.topic.bias
+  - robot.probe.2.entity_presence.weight
+  - robot.probe.2.entity_presence.bias
+  - robot.probe.2.register.weight
+  - robot.probe.2.register.bias
+  - robot.probe.2.safety_salience.weight
+  - robot.probe.2.safety_salience.bias
+  - robot.probe.2.sentiment.weight
+  - robot.probe.2.sentiment.bias
+  - robot.probe.2.speech_act.weight
+  - robot.probe.2.speech_act.bias
+  - robot.probe.2.topic.weight
+  - robot.probe.2.topic.bias
+  - robot.probe.3.entity_presence.weight
+  - robot.probe.3.entity_presence.bias
+  - robot.probe.3.register.weight
+  - robot.probe.3.register.bias
+  - robot.probe.3.safety_salience.weight
+  - robot.probe.3.safety_salience.bias
+  - robot.probe.3.sentiment.weight
+  - robot.probe.3.sentiment.bias
+  - robot.probe.3.speech_act.weight
+  - robot.probe.3.speech_act.bias
+  - robot.probe.3.topic.weight
+  - robot.probe.3.topic.bias
+  - robot.probe.4.entity_presence.weight
+  - robot.probe.4.entity_presence.bias
+  - robot.probe.4.register.weight
+  - robot.probe.4.register.bias
+  - robot.probe.4.safety_salience.weight
+  - robot.probe.4.safety_salience.bias
+  - robot.probe.4.sentiment.weight
+  - robot.probe.4.sentiment.bias
+  - robot.probe.4.speech_act.weight
+  - robot.probe.4.speech_act.bias
+  - robot.probe.4.topic.weight
+  - robot.probe.4.topic.bias
+  - robot.probe.5.entity_presence.weight
+  - robot.probe.5.entity_presence.bias
+  - robot.probe.5.register.weight
+  - robot.probe.5.register.bias
+  - robot.probe.5.safety_salience.weight
+  - robot.probe.5.safety_salience.bias
+  - robot.probe.5.sentiment.weight
+  - robot.probe.5.sentiment.bias
+  - robot.probe.5.speech_act.weight
+  - robot.probe.5.speech_act.bias
+  - robot.probe.5.topic.weight
+  - robot.probe.5.topic.bias
+  - blk.6.robot_state.alpha
+  - blk.6.robot_state.in_proj.weight
+  - blk.6.robot_state.out_proj.weight
+  - blk.12.robot_state.alpha
+  - blk.12.robot_state.in_proj.weight
+  - blk.12.robot_state.out_proj.weight
+  - blk.18.robot_state.alpha
+  - blk.18.robot_state.in_proj.weight
+  - blk.18.robot_state.out_proj.weight
+  - robot.mod.alpha
+  - robot.mod.pool.weight
+  - robot.mod.cell.weight
+  - blk.6.robot_film.gamma.weight
+  - blk.6.robot_film.gamma.bias
+  - blk.6.robot_film.beta.weight
+  - blk.12.robot_film.gamma.weight
+  - blk.12.robot_film.gamma.bias
+  - blk.12.robot_film.beta.weight
+  - blk.18.robot_film.gamma.weight
+  - blk.18.robot_film.gamma.bias
+  - blk.18.robot_film.beta.weight
+  - robot.mem.summary.key.weight
+  - robot.mem.summary.value.weight
+  - blk.4.robot_delta.theta_base
+  - blk.8.robot_delta.theta_base
+  - blk.12.robot_delta.theta_base
+  - blk.16.robot_delta.theta_base
+  - blk.20.robot_delta.theta_base
+graft:
+  trained: false
+  steps: 0
+  tensor_dir: /Users/keithbrings/Work/Space/Infra/Noizu/projects/therobotgguf/convert/work/grafts
+  film_layers:
+  - 6
+  - 12
+  - 18
+verify:
+  load: OK
+  parity: max |logit diff| = 0 over 248320 logits
+  strip: OK
+  modules: 3 manifest(s) OK
+shims:
+  admitted:
+  - name: register-formal
+    file: register-formal.gguf
+    tags:
+    - style
+    - formal
+    selectivity: 0.101589
+    depends: []
+    conflicts: []
+  - name: topic-bias-tech
+    file: topic-bias-tech.gguf
+    tags:
+    - topic
+    selectivity: 0.415358
+    depends: []
+    conflicts: []
+  - name: safety-damping
+    file: safety-damping.gguf
+    tags:
+    - safety
+    selectivity: 0.065856
+    depends: []
+    conflicts: []
+  rejected: []
+  registry: /Users/keithbrings/Work/Space/Infra/Noizu/projects/therobotgguf/convert/work/modules/registry.json
+  salience:
+    threshold_quantile: 0.9

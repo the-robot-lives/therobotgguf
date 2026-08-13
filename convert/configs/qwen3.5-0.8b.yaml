@@ -1,0 +1,145 @@
+# robotgguf per-donor config — Qwen3.5-0.8B (primary conversion target)
+#
+# Why this donor (July 2026): the Qwen3.5 small series (0.8B/2B/4B/9B, released
+# 2026-03-01) is the current best capability-per-parameter family; the 0.8B is
+# strictly smaller AND newer than the previous Qwen2.5-1.5B target, instruct-
+# tuned out of the box, and fully supported by the fork (arch `qwen35`,
+# wrapped by the therobot runtime).
+#
+# Architecture facts this config is built around (verify at R0 — ingest will
+# refuse to proceed if the survey disagrees):
+#   hidden_size 1024, 24 blocks, hybrid layout 6 × (3×GatedDeltaNet→FFN →
+#   1×GatedAttention→FFN) → attention blocks sit at L ≡ 3 (mod 4):
+#   layers 3, 7, 11, 15, 19, 23.
+# The GDN blocks are linear-attention/recurrent — this donor doubles as the
+# conversion-pipeline roadmap's #2 ("SSM-class: §B banks are backbone-
+# agnostic") while still exercising the full graft path.
+
+# use the local checkpoint to avoid re-downloading (an HF id like
+# "Qwen/Qwen3.5-0.8B" also works but pulls the weights again)
+donor: /Users/keithbrings/Work/LLMs/Qwen3.5-0.8B
+base_architecture: qwen35
+# stock GGUF from the fork's converter (see qwen3.5-0.8b.md step 2):
+base_gguf: work/qwen3.5-0.8b-f16.gguf
+
+# NOTE loader change (extraction-v1 C1): a bare file list is now read as
+# equal-share strata, interleaved — no longer head-to-tail (the v0 sampling
+# bug). behavioral-suites is tiny, so it exhausts after a few windows and
+# shares renormalize onto mixed-text; each window carries a domain label
+# either way. Swap in corpus/manifest.yaml (tools/fetch_corpus.py) for the
+# full seven-stratum v1 corpus.
+corpus:
+  - corpus/mixed-text.txt        # a few hundred MB of mixed text
+  - corpus/behavioral-suites.txt # the project's task suites
+
+# semvec — the standardized label vector + readout coordinate system
+# (extraction-v1 §3). With recordings already on disk, re-baseline without
+# re-running the model:  robotgguf relabel  →  robotgguf cleave
+# (relabel rebuilds labels/vector.npy at t0 + the categorical views;
+# cleave then runs the v0 categorical path AND the vector path.)
+semvec: configs/semvec-v1.yaml
+
+# semvec axis admission (extraction-v1 §4.3)
+min_axis_decodability: 0.3
+min_axis_selectivity: 0.05
+min_domain_stability_ratio: 0.9
+mlp_fallback_max: 8
+vec_l2: 10.0
+vec_sample_cap: 1000000
+
+# R2 — text-domain v0 attribute set (conversion-pipeline.md §R2)
+attributes:
+  - language
+  - register
+  - sentiment
+  - topic
+  - speech_act
+  - safety_salience
+  - entity_presence
+
+# candidate cleave sites: residual stream every 4 blocks, 128 of 1024
+# channels, avoiding block 0 and the final block. Sites at L ≡ 2 (mod 4) sit
+# just before each attention block — the stream state attention will consume.
+candidate_sites:
+  - { name: resid2,  layer: 2,  point: resid_post, offset: 0, width: 128 }
+  - { name: resid6,  layer: 6,  point: resid_post, offset: 0, width: 128 }
+  - { name: resid10, layer: 10, point: resid_post, offset: 0, width: 128 }
+  - { name: resid14, layer: 14, point: resid_post, offset: 0, width: 128 }
+  - { name: resid18, layer: 18, point: resid_post, offset: 0, width: 128 }
+  - { name: resid22, layer: 22, point: resid_post, offset: 0, width: 128 }
+
+# thresholds are on BALANCED accuracy (mean per-class recall; chance = 1/C).
+# min_decodability 0.45 clears 4-class chance (0.25) with real skill; the
+# selectivity gate (probe vs shuffled-feature control) does the real work of
+# rejecting majority-class artifacts.
+max_bottlenecks: 6
+min_decodability: 0.45
+min_selectivity: 0.05
+
+# R3 — banks per 003 §2 (glacial feeds the modulator). Layers spread across
+# depth, on GDN-block positions (the recurrent stripes complement, not fight,
+# the native DeltaNet state); final block excluded by runtime rule.
+state_banks:
+  - { name: fast,    width: 24 }
+  - { name: mid,     width: 24 }
+  - { name: slow,    width: 8 }
+  - { name: glacial, width: 8 }
+state_layers: [6, 12, 18]
+film_layers: [6, 12, 18]
+modulator:
+  # The modulator bus doubles as the episodic-memory value space (memory
+  # value_dim == modulator dim), so its width is memory's content bandwidth.
+  # The first 8 dims are named, interpretable mood channels; the remaining dims
+  # are an UNNAMED latent space that memory can embed richer content vectors
+  # into and FiLM projects back into the residual (n_embd). Widen for more
+  # memory capacity; narrow (=8) for pure mood. Re-export after changing.
+  dim: 32
+  channels: [arousal, valence, attention, safety, novelty, focus, warmth, energy]
+  source: glacial
+
+# R4 — start delta on mid-depth blocks only; the hybrid layout makes
+# per-block Δ statistics uneven (GDN vs attention blocks), so calibrate will
+# report per-block keep rates — prune the list if attention blocks
+# (7/11/15/19) hold poorly.
+delta:
+  enabled: true
+  target_keep_rate: 0.3
+  heartbeat: 32
+  layers: [4, 8, 12, 16, 20]
+
+# R5 — v0 shim set
+shims:
+  - { name: register-formal, attribute: register,        direction: 1, scale: 1.0, tags: [style, formal] }
+  - { name: topic-bias-tech, attribute: topic,           direction: 1, scale: 0.8, tags: [topic] }
+  - { name: safety-damping,  attribute: safety_salience, direction: 0, scale: 1.0, tags: [safety] }
+
+memory:
+  key_dim: 32
+  capacity: 128
+  decay_halflife: 512.0
+  salience_threshold_quantile: 0.9
+  # What makes a moment worth remembering. Surprise (−log p) is the free
+  # bootstrap signal but measures "startling", not "important"; salience blends
+  # it with the modulator's emotional/importance channels so a calm-but-
+  # consequential input can still be written. floor is an absolute bar on top of
+  # the quantile gate → writes stay rare (a quiet stretch records nothing).
+  salience:
+    surprise: 1.0        # weight on prediction error
+    mnorm:    1.0        # weight on ‖m‖ (overall arousal)
+    floor:    0.0        # absolute minimum salience to write (0 = quantile only)
+    # channels: per-modulator-channel importance weights (one per channel).
+    # Uncomment + name all modulator channels to make specific states drive
+    # retention, e.g. remember threatening or high-valence moments:
+    # channels: { arousal: 0.0, valence: 1.0, novelty: 0.5, ... }
+
+settle:
+  enabled: false   # v0: settle ships against a diffusion-class donor instead
+
+features: [taps, shims, state, modulator, memory, delta]
+level: 3
+
+paths:
+  gguf_py: ../../../3rd-party/llama.cpp/gguf-py
+  runtime_bin: ../../../3rd-party/llama.cpp/build/bin   # the fork's build (for R8 verify)
+  recordings: work/recordings
+  workdir: work

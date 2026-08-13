@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+data_dir="${THEROBOT_DATA:-/workspace/data}"
+root_dir="${THEROBOT_ROOT:-/workspace/therobotgguf}"
+
+mkdir -p "${data_dir}/llms" "${data_dir}/corpus" "${data_dir}/hf-cache" "${data_dir}/work"
+
+if [[ -d "${root_dir}/convert" ]]; then
+  rm -rf "${root_dir}/convert/corpus" "${root_dir}/convert/work"
+  ln -sfn "${data_dir}/corpus" "${root_dir}/convert/corpus"
+  ln -sfn "${data_dir}/work" "${root_dir}/convert/work"
+fi
+
+ln -sfn "${data_dir}/llms" "${root_dir}/llms"
+
+echo "Initialized ${data_dir}"
+therobot-check-volume
