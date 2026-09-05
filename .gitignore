@@ -6,3 +6,6 @@ convert/corpus/
 __pycache__/
 node_modules/
 .next/
+
+# Canonical worktree placement
+.claude/worktrees/
