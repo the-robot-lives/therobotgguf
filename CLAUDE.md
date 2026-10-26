@@ -29,4 +29,4 @@ All work happens on git worktrees, created from **this repo's own `.git`** — n
 
 - Submodules sit on **`develop`** — keep your checkout on `develop`.
 - All PRs target **`develop`** (feature/bug/task branches fork from `develop`).
-- **`main` is CI/CD-only**: CI/CD automation performs all merges into `main` (release path). Never merge to or push `main` by hand.
+- **`main` is release-triggered**: a merge into `main` triggers CI/CD (image build → `bump-chart` → ArgoCD sync). Promotions land via `stage` → `main` PRs per the monorepo merge matrix.
